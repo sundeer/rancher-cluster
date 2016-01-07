@@ -1,0 +1,12 @@
+---
+terraform:
+  dir: ./terraform
+  state: terraform.tfstate
+
+rancher:
+  server:
+    scheme: https
+    port: default
+    hostname: b4kk83
+    domain_name: corngoodness.com
+    api: v1

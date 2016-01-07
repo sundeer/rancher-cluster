@@ -1,0 +1,9 @@
+#cloud-config
+rancher:
+  services:
+    rancher-agent-boot:
+      image: rancher/agent:v0.8.2
+      command: https://b4kk83.corngoodness.com/v1/projects/1a5/scripts/04F1D5235E78764A7225:1452186000000:PWHh9mIbwVaZojLCRmLRE8M8wRM
+      privileged: true
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock

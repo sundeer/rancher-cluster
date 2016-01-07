@@ -1,0 +1,33 @@
+#cloud-config
+rancher:
+  services:
+    rancher-server:
+      image: rancher/server
+      restart: always
+      name: rancher-server
+      ports:
+        - 8080:8080
+
+    letsencrypt:
+      image: sundeer/com.corngoodness.letsencrypt:latest
+      command: auth -m b4kk83@corngoodness.com -d b4kk83.corngoodness.com --agree-tos --test-cert
+      ports:
+        - 80:80
+        - 443:443
+      privileged: true
+      volumes:
+        - /etc/letsencrypt:/etc/letsencrypt
+        - /var/lib/letsencrypt:/var/lib/letsencrypt
+
+    rancher-tls-proxy:
+      image: sundeer/rancher-tls-proxy
+      restart: always
+      name: rancher-tls-proxy
+      privileged: true
+      volumes:
+        - /etc/letsencrypt:/etc/letsencrypt
+      links:
+        - rancher-server
+      ports:
+        - 443:443
+        - 80:80
