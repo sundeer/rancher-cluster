@@ -65,7 +65,7 @@ def resource_url(ctx, resource_name='all'):
     server = '{0}.{1}'.format(hostname, domain_name)
     url = 'https://{0}/{1}'.format(server, api)
 
-    response = wait_for_server(ctx, server)
+    response = wait_for_server(ctx)
 
     schemas_url = response.headers['X-Api-Schemas']
     response = requests.get(schemas_url, verify=False)
@@ -79,8 +79,14 @@ def resource_url(ctx, resource_name='all'):
         return urls[resource_name]
 
 
-def wait_for_server(ctx, server):
-    url = "https://{0}/v1/projects".format(server)
+def wait_for_server(ctx):
+    # see invoke.yml in project root
+    hostname = ctx.rancher.server.hostname
+    domain_name = ctx.rancher.server.domain_name
+    api = ctx.rancher.server.api
+
+    server = '{0}.{1}'.format(hostname, domain_name)
+    url = 'https://{0}/{1}'.format(server, api)
 
     print('Waiting for Rancher server to respond.')
     print('This may take a few minutes')
@@ -100,8 +106,14 @@ def wait_for_server(ctx, server):
     return response
 
 
-def get_agent_registration_url(ctx, server_name):
-    url = "https://{0}/v1/projects".format(server_name)
+def get_agent_registration_url(ctx):
+    # see invoke.yml in project root
+    hostname = ctx.rancher.server.hostname
+    domain_name = ctx.rancher.server.domain_name
+    api = ctx.rancher.server.api
+
+    server = '{0}.{1}'.format(hostname, domain_name)
+    url = 'https://{0}/{1}/projects'.format(server, api)
 
     response = requests.get(url, verify=False)
     if response.status_code != 200:

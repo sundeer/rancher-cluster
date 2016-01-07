@@ -40,6 +40,11 @@ variable "host_count" {
   default = 0
 }
 
+variable "agent_registration_url" {
+  description = ""
+  default = ""
+}
+
 variable "public_subnet" {
   description = "CIDR for public subnet"
   default     = {
