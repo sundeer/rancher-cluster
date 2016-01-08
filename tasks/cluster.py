@@ -70,16 +70,16 @@ def add_hosts(ctx, number, environment='Default', token=False):
     action = 'apply'
     _terraform(ctx, action, hosts=hosts, agent_registration_url=url, rancher_agent_image=image)
 
-
-@task
-def remove_hosts(ctx, number):
-    current_hosts = _count_tf_resource(ctx, 'aws_instance.host')
-    hosts_to_remove = int(number)
-    hosts = current_hosts - hosts_to_remove
-    if hosts < 0:
-        hosts = 0
-    action = 'apply'
-    _terraform(ctx, action, hosts=hosts)
+# Broke after adding host user_data template
+# @task
+# def remove_hosts(ctx, number):
+#     current_hosts = _count_tf_resource(ctx, 'aws_instance.host')
+#     hosts_to_remove = int(number)
+#     hosts = current_hosts - hosts_to_remove
+#     if hosts < 0:
+#         hosts = 0
+#     action = 'apply'
+#     _terraform(ctx, action, hosts=hosts)
 
 
 @task
