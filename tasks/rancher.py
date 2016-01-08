@@ -52,10 +52,6 @@ def resource(ctx, list=False):
     pass
 
 
-
-
-
-
 def resource_url(ctx, resource_name='all'):
     # see invoke.yml in project root
     hostname = ctx.rancher.server.hostname
