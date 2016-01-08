@@ -27,10 +27,6 @@ def create(ctx, hosts=None, servers=None):
     if servers is not None:
         add_servers(ctx, servers)
 
-        rancher.wait_for_server(ctx)
-        # url = rancher.get_agent_registration_url(ctx, server_name)
-        # _create_hosts_cloud_config_user_data(ctx, url)
-
     if hosts is not None:
         add_hosts(ctx, number=hosts)
 
@@ -69,10 +65,10 @@ def add_hosts(ctx, number, environment='Default', token=False):
 
     rancher.wait_for_server(ctx)
 
-    url = rancher.get_agent_registration_url(ctx)
+    url, image = rancher.get_agent_registration_data(ctx)
 
     action = 'apply'
-    _terraform(ctx, action, hosts=hosts, agent_registration_url=url)
+    _terraform(ctx, action, hosts=hosts, agent_registration_url=url, rancher_agent_image=image)
 
 
 @task
@@ -106,17 +102,17 @@ def recreate(ctx, hosts=None, servers=None):
     create(ctx, hosts=hosts, servers=servers)
 
 
-@task
-def refresh(ctx):
-    current_servers = _count_tf_resource(ctx, 'aws_instance.server')
-    current_hosts = _count_tf_resource(ctx, 'aws_instance.host')
-
-    rancher.wait_for_server(ctx)
-    url = rancher.get_agent_registration_url(ctx)
-    _create_hosts_cloud_config_user_data(ctx, url)
-
-    action = 'apply'
-    _terraform(ctx, action, hosts=current_hosts, servers=current_servers)
+# @task
+# def refresh(ctx):
+#     current_servers = _count_tf_resource(ctx, 'aws_instance.server')
+#     current_hosts = _count_tf_resource(ctx, 'aws_instance.host')
+#
+#     rancher.wait_for_server(ctx)
+#     url, image = rancher.get_agent_registration_data(ctx)
+#     _create_hosts_cloud_config_user_data(ctx, url)
+#
+#     action = 'apply'
+#     _terraform(ctx, action, hosts=current_hosts, servers=current_servers)
 
 
 @task
@@ -154,7 +150,7 @@ def _count_tf_resource(ctx, resource_pattern):
 
 def _terraform(ctx,
     action,
-    hosts=None, agent_registration_url=None,
+    hosts=None, agent_registration_url=None, rancher_agent_image=None,
     servers=None
     ):
 
@@ -166,10 +162,18 @@ def _terraform(ctx,
     if hosts is None:
         current_hosts = _count_tf_resource(ctx, 'aws_instance.host')
         hosts = '-var host_count={0}'.format(current_hosts)
-        url = ''
     else:
         hosts = '-var host_count={0}'.format(hosts)
+
+    if agent_registration_url is None:
+        url = ''
+    else:
         url = '-var agent_registration_url={0}'.format(agent_registration_url)
+
+    if rancher_agent_image is None:
+        image = ''
+    else:
+        image = '-var rancher_agent_image={0}'.format(rancher_agent_image)
 
     if servers is None:
         current_servers = _count_tf_resource(ctx, 'aws_instance.server')
@@ -178,14 +182,14 @@ def _terraform(ctx,
         servers = '-var server_count={0}'.format(servers)
 
     tf_state_file = '-state={0}/{1}'.format(ctx.terraform.dir, ctx.terraform.state)
-
     tf_dir = '{0}'.format(ctx.terraform.dir)
 
-    tf_string = 'terraform {0} {1} {2} {3} {4} {5} {6}'
+    tf_string = 'terraform {0} {1} {2} {3} {4} {5} {6} {7}'
     tf_cmd = tf_string.format(
         action,
         hosts,
         url,
+        image,
         servers,
         force,
         tf_state_file,

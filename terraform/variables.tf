@@ -48,6 +48,11 @@ variable "agent_registration_url" {
   default = ""
 }
 
+variable "rancher_agent_image" {
+  description = ""
+  default = ""
+}
+
 variable "public_subnet" {
   description = "CIDR for public subnet"
   default     = {

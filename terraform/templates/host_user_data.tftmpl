@@ -2,8 +2,9 @@
 rancher:
   services:
     rancher-agent-boot:
-      image: rancher/agent:v0.8.2
+      image: ${rancher_agent_image}
       command: ${agent_registration_url}
+      detatch: true
       privileged: true
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock

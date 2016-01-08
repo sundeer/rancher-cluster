@@ -24,6 +24,7 @@ resource "template_file" "host" {
   template = "${file("./terraform/templates/host_user_data.tftmpl")}"
 
   vars {
+    rancher_agent_image = "${var.rancher_agent_image}"
     agent_registration_url = "${var.agent_registration_url}"
   }
 }

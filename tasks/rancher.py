@@ -106,7 +106,7 @@ def wait_for_server(ctx):
     return response
 
 
-def get_agent_registration_url(ctx):
+def get_agent_registration_data(ctx):
     # see invoke.yml in project root
     hostname = ctx.rancher.server.hostname
     domain_name = ctx.rancher.server.domain_name
@@ -114,6 +114,7 @@ def get_agent_registration_url(ctx):
 
     server = '{0}.{1}'.format(hostname, domain_name)
     url = 'https://{0}/{1}/projects'.format(server, api)
+    # url = 'http://{0}:8080/{1}/projects'.format(server, api)
 
     response = requests.get(url, verify=False)
     if response.status_code != 200:
@@ -121,5 +122,7 @@ def get_agent_registration_url(ctx):
     url = response.json()['data'][0]['links']['registrationTokens']
     response = requests.post(url, verify=False)
     response = requests.get(url, verify=False)
+
     registration_url = response.json()['data'][0]['registrationUrl']
-    return registration_url
+    image = response.json()['data'][0]['image']
+    return registration_url, image
