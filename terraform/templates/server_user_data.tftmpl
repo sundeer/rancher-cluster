@@ -9,8 +9,8 @@ rancher:
         - 8080:8080
 
     letsencrypt:
-      image: sundeer/com.corngoodness.letsencrypt:latest
-      command: auth -m b4kk83@corngoodness.com -d b4kk83.corngoodness.com --agree-tos --test-cert
+      image: ${letsencrypt_image} 
+      command: auth -m ${hostname}@${domain_name} -d ${hostname}.${domain_name} --agree-tos --test-cert
       ports:
         - 80:80
         - 443:443

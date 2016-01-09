@@ -12,22 +12,18 @@ resource "aws_instance" "server" {
   ]
   key_name = "${aws_key_pair.insecure.key_name}"
   source_dest_check = false
-  user_data = "${file(\"./terraform/cloud-config/server.yml\")}"
+  user_data = "${template_file.server.rendered}"
   tags = {
     Name = "server-${count.index}"
   }
 }
 
-/* Load balancer */
-/*resource "aws_elb" "app" {
-  name = "airpair-example-elb"
-  subnets = ["${aws_subnet.public.id}"]
-  security_groups = ["${aws_security_group.default.id}", "${aws_security_group.web.id}"]
-  listener {
-    instance_port = 80
-    instance_protocol = "http"
-    lb_port = 80
-    lb_protocol = "http"
+resource "template_file" "server" {
+  template = "${file("./terraform/templates/server_user_data.tftmpl")}"
+
+  vars {
+    hostname = "${var.server_hostname}"
+    domain_name = "${var.server_domain_name}"
+    letsencrypt_image = "sundeer/com.corngoodness.letsencrypt:latest"
   }
-  instances = ["${aws_instance.app.*.id}"]
-}*/
+}

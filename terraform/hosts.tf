@@ -14,8 +14,17 @@ resource "aws_instance" "host" {
   ]
   key_name = "${aws_key_pair.insecure.key_name}"
   source_dest_check = false
-  user_data = "${file(\"./terraform/cloud-config/agent.yml\")}"
+  user_data = "${template_file.host.rendered}"
   tags = {
     Name = "host-${count.index}"
+  }
+}
+
+resource "template_file" "host" {
+  template = "${file("./terraform/templates/host_user_data.tftmpl")}"
+
+  vars {
+    rancher_agent_image = "${var.rancher_agent_image}"
+    agent_registration_url = "${var.agent_registration_url}"
   }
 }

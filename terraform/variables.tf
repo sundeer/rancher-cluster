@@ -25,19 +25,32 @@ variable "server_count" {
   default = 0
 }
 
-variable "server_host_name" {
+variable "server_hostname" {
   description = "Rancher server name"
   default = "b4kk83"
 }
 
-variable "server_user_data" {
-  description = "Rancher cloud-config server user_data"
-  default = "cloud-config/server.yml"
+variable "server_domain_name" {
+  default = "corngoodness.com"
 }
+
+/*variable "stage_domain" {
+  default = ".com"
+}*/
 
 variable "host_count" {
   description = "Number or Rancher hosts to create"
   default = 0
+}
+
+variable "agent_registration_url" {
+  description = ""
+  default = ""
+}
+
+variable "rancher_agent_image" {
+  description = ""
+  default = ""
 }
 
 variable "public_subnet" {
@@ -53,24 +66,6 @@ variable "private_subnet" {
   default     = {
     cidr = "10.99.1.0/24"
     az = "us-east-1a"
-  }
-}
-
-variable "test_domain" {
-  default = "corngoodness.com"
-}
-
-/*variable "stage_domain" {
-  default = ".com"
-}*/
-
-/* Ubuntu 14.04 amis by region */
-variable "ubuntu_amis" {
-  description = "Base AMI to launch the instances with"
-  default = {
-    us-west-1 = "ami-ec87e98c"
-    us-east-1 = "ami-d92e6bb3"
-    eu-west-1 = "ami-87cb11f4"
   }
 }
 
