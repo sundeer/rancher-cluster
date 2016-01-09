@@ -17,7 +17,6 @@ def apply(ctx,
 
     opts_list = []
 
-    # Non positional terraform command line options
     if hosts is not None:
         option = '-var host_count={0}'.format(hosts)
         opts_list.append(option)
@@ -45,7 +44,6 @@ def apply(ctx,
     run_terraform(ctx, 'apply', opts_list)
 
 def run_terraform(ctx, command, opts_list):
-
     # Add state file option
     tf_state_file = '{0}/{1}'.format(ctx.terraform.dir, ctx.terraform.state)
     option = '-state={0}'.format(tf_state_file)
@@ -75,3 +73,12 @@ def get_state(ctx):
     tf_state_file = '{0}/{1}'.format(ctx.terraform.dir, ctx.terraform.state)
     tf_state = json.loads(open(tf_state_file).read())
     return tf_state
+
+def count_current_resource(ctx, res_type='any'):
+    if res_type == 'any':
+        count = count_resource(ctx, '.*')
+    elif res_type == 'host':
+        count = count_resource(ctx, 'aws_instance.host')
+    elif res_type == 'server':
+        count = count_resource(ctx, 'aws_instance.server')
+    return count

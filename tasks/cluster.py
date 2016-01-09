@@ -1,6 +1,5 @@
 from invoke import ctask as task
 from invoke import run, exceptions
-from jinja2 import Environment, FileSystemLoader
 from tasks import rancher, terraform
 import requests
 import json
@@ -15,7 +14,7 @@ def create_vpc(ctx):
 
 @task
 def build(ctx, hosts=None, servers=None):
-    resource_count = _count_current_resource(ctx, res_type='any')
+    resource_count = terraform.count_current_resource(ctx, res_type='any')
     if resource_count is not 0:
         print('')
         print('Cluster already created!')
@@ -108,9 +107,9 @@ def recreate(ctx, hosts=None, servers=None):
 
 @task
 def list(ctx):
-    servers = _count_current_resource(ctx, res_type='server')
-    hosts = _count_current_resource(ctx, res_type='host')
-    resources = _count_current_resource(ctx, res_type='any')
+    servers = terraform.count_current_resource(ctx, res_type='server')
+    hosts = terraform.count_current_resource(ctx, res_type='host')
+    resources = terraform.count_current_resource(ctx, res_type='any')
 
     print('')
     print('Current Resources')
@@ -119,25 +118,3 @@ def list(ctx):
     print('Hosts:     {0}'.format(hosts))
     print('Resources: {0}'.format(resources))
     print('')
-
-
-def _count_current_resource(ctx, res_type='any'):
-    if res_type == 'any':
-        count = terraform.count_resource(ctx, '.*')
-    elif res_type == 'host':
-        count = terraform.count_resource(ctx, 'aws_instance.host')
-    elif res_type == 'server':
-        count = terraform.count_resource(ctx, 'aws_instance.server')
-    return count
-
-
-def _create_hosts_cloud_config_user_data(ctx, registration_url):
-    path = os.path.dirname(os.path.abspath(__file__))
-    template_environment = Environment(
-        autoescape=False,
-        loader=FileSystemLoader(os.path.join(path, 'templates')),
-        trim_blocks=False)
-    context = {'registration_url': registration_url}
-    target = template_environment.get_template('agent.yml.j2').render(context)
-    f = open(os.path.join(path, '../terraform/cloud-config/agent.yml'), 'w')
-    f.write(target)
