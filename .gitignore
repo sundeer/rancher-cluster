@@ -134,3 +134,7 @@ crashlytics-build.properties
 
 # Project specific
 orig-tut-files/
+
+# Terraform
+# *.tfstate
+# *.tfstate.backup
