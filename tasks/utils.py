@@ -2,7 +2,6 @@ from Crypto.PublicKey import RSA
 from invoke import ctask as task
 import json
 
-@task
 def generate_OpenSSH(ctx, bits=2048):
     '''
     Generate an RSA OpenSSH keypair with an exponent of 65537
