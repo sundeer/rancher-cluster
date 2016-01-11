@@ -44,7 +44,7 @@ def apply(ctx,
     run_terraform(ctx, 'apply', opts_list)
 
 def run_terraform(ctx, command, opts_list):
-    # Add state file option
+    # Add state file location option
     tf_state_file = '{0}/{1}'.format(ctx.terraform.dir, ctx.terraform.state)
     option = '-state={0}'.format(tf_state_file)
     opts_list.append(option)

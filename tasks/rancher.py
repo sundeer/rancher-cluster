@@ -55,7 +55,6 @@ def env(ctx,
             print('No such environment: {0}'.format(name))
 
 
-@task
 def resource(ctx, list=False):
     pass
 
