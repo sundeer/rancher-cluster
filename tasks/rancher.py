@@ -1,24 +1,25 @@
 from invoke import ctask as task
+import gdapi
 from tasks import utils
 import time
 import requests
 import json
 
 @task
-def environments(ctx,
-    list=False,
+def env(ctx,
+    list=True,
     create=False,
+    delete=False,
     name=None,
-    description="",
-    servicePortRange=None,
-    members=[]):
+    description=""):
+    '''Create and interact with environments/projects'''
 
     environments_url = resource_url(ctx, 'projects')
 
     if list:
         response = requests.get(environments_url, verify=False)
-        if response.status_code != 200:
-            raise ApiError('GET /v1/projects/ {}'.format(response.status_code))
+        response.raise_for_status()
+
         environments = response.json()['data']
         env_names = [ environment['name'] for environment in environments ]
         print('')
@@ -28,23 +29,30 @@ def environments(ctx,
         print('')
     elif create:
         data = {"name": name,
-                "description": description,
-                "servicePortRange": servicePortRange,
-                "members": members}
+                "description": description}
         response = requests.post(environments_url, data, verify=False)
         response.raise_for_status()
+
         print('')
         print("Environment '{}' created".format(name))
         # environments(ctx, list=True)
     elif delete:
-        response = requests.get(environments_url)
-        environments = response.json()['data']
-
-        response = requests.post(environments_url, data, verify=False)
+        response = requests.get(environments_url, verify=False)
         response.raise_for_status()
-        print('')
-        print("Environment '{}' created".format(name))
-        # environments(ctx, list=True)
+
+        environments = response.json()['data']
+        environment_url = None
+        for e in environments:
+            if e['name'] == name:
+                environment_url = e['links']['self']
+        if environment_url is not None:
+            response = requests.delete(environment_url, verify=False)
+            response.raise_for_status()
+            print('')
+            print("Environment '{}' deleted".format(name))
+        else:
+            print('')
+            print('No such environment: {0}'.format(name))
 
 
 @task
