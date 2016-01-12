@@ -60,13 +60,7 @@ def resource(ctx, list=False):
 
 
 def resource_url(ctx, resource_name='all'):
-    # see invoke.yml in project root
-    hostname = ctx.rancher.server.hostname
-    domain_name = ctx.rancher.server.domain_name
-    api = ctx.rancher.server.api
-
-    server = '{0}.{1}'.format(hostname, domain_name)
-    url = 'https://{0}/{1}'.format(server, api)
+    url = get_root_api_url(ctx)
 
     response = wait_for_server(ctx)
 
@@ -83,15 +77,10 @@ def resource_url(ctx, resource_name='all'):
 
 
 def wait_for_server(ctx):
-    # see invoke.yml in project root
-    hostname = ctx.rancher.server.hostname
-    domain_name = ctx.rancher.server.domain_name
-    api = ctx.rancher.server.api
+    url = get_root_api_url(ctx)
 
-    server = '{0}.{1}'.format(hostname, domain_name)
-    url = 'https://{0}/{1}'.format(server, api)
-
-    print('Waiting for Rancher server to respond.')
+    print('Rancher server: {0}'.format(url))
+    print('Waiting for server to respond.')
     print('This may take a few minutes')
 
     responding = False
@@ -110,11 +99,6 @@ def wait_for_server(ctx):
 
 
 def get_agent_registration_data(ctx, env):
-    # see invoke.yml in project root
-    hostname = ctx.rancher.server.hostname
-    domain_name = ctx.rancher.server.domain_name
-    api = ctx.rancher.server.api
-
     environments_url = resource_url(ctx, 'projects')
     response = requests.get(environments_url, verify=False)
     response.raise_for_status()
@@ -126,16 +110,35 @@ def get_agent_registration_data(ctx, env):
              environment_url = e['links']['self']
     if environment_url is None:
         return None, None
+    else:
+        response = requests.get(environment_url, verify=False)
+        response.raise_for_status()
 
-    response = requests.get(environment_url, verify=False)
-    response.raise_for_status()
+        tokens_url = response.json()['links']['registrationTokens']
+        response = requests.post(tokens_url, verify=False)
+        response.raise_for_status()
+        token_url = response.json()['links']['self']
 
-    tokens_url = response.json()['links']['registrationTokens']
-    response = requests.post(tokens_url, verify=False)
-    response.raise_for_status()
+        response = requests.get(token_url, verify=False)
+        token_data_state = response.json()['state']
+        while token_data_state != 'active':
+            response = requests.get(token_url, verify=False)
+            token_data_state = response.json()['state']
+            time.sleep(1)
 
-    token_data = requests.get(response.json()['links']['self'], verify=False)
+        registration_url = response.json()['registrationUrl']
+        image = response.json()['image']
+        return registration_url, image
 
-    registration_url = response.json()['registrationUrl']
-    image = response.json()['image']
-    return registration_url, image
+
+def get_root_api_url(ctx):
+    scheme      = ctx.rancher.server.scheme
+    port        = ctx.rancher.server.port
+    hostname    = ctx.rancher.server.hostname
+    domain_name = ctx.rancher.server.domain_name
+    api         = ctx.rancher.server.api
+
+    server = '{0}.{1}'.format(hostname, domain_name)
+    url = '{0}://{1}:{2}/{3}'.format(scheme, server, port, api)
+
+    return url

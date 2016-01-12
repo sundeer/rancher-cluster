@@ -43,6 +43,7 @@ def add_servers(ctx, number):
     servers_to_add = int(number)
     servers = current_servers + servers_to_add
     terraform.apply(ctx, servers=servers)
+    rancher.wait_for_server(ctx)
 
 
 # @task
@@ -59,11 +60,16 @@ def add_servers(ctx, number):
             'env'   : "Name of Rancher Environment host(s) will be added to"})
 def add_hosts(ctx, number, env='Default', token=False):
     '''Add Rancher hosts to cluster'''
+    current_servers = terraform.count_resource(ctx, 'aws_instance.server')
+    if current_servers == 0:
+        print('')
+        print('No Rancher server found. Server must')
+        print('be created prior to adding hosts')
+        return 1
+        
     current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
     hosts_to_add = int(number)
     hosts = current_hosts + hosts_to_add
-
-    rancher.wait_for_server(ctx)
 
     url, image = rancher.get_agent_registration_data(ctx, env)
     if url is None:
