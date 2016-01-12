@@ -73,6 +73,7 @@ def add_hosts(ctx, number, env='Default', token=False):
 
     terraform.apply(ctx, hosts=hosts, agent_registration_url=url, rancher_agent_image=image)
 
+
 # Broke after adding host user_data template
 # @task
 # def remove_hosts(ctx, number):
@@ -82,10 +83,6 @@ def add_hosts(ctx, number, env='Default', token=False):
 #     if hosts < 0:
 #         hosts = 0
 #     terraform.apply(ctx, hosts=hosts)
-
-
-def plan(ctx):
-    terraform.apply(ctx, action)
 
 
 # @task
