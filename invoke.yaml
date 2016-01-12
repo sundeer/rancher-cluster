@@ -2,7 +2,6 @@
 terraform:
   dir: ./terraform
   state: terraform.tfstate
-
 rancher:
   server:
     scheme: https
@@ -10,3 +9,7 @@ rancher:
     hostname: b4kk83
     domain_name: corngoodness.com
     api: v1
+  environments:
+    - test
+    - stage
+    - production

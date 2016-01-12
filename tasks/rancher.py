@@ -7,11 +7,11 @@ import json
 
 @task
 def env(ctx,
-    list=True,
+    list=False,
     create=False,
     delete=False,
     name=None,
-    description=""):
+    description=None):
     '''Create and interact with environments/projects'''
 
     environments_url = resource_url(ctx, 'projects')
@@ -49,7 +49,7 @@ def env(ctx,
             response = requests.delete(environment_url, verify=False)
             response.raise_for_status()
             print('')
-            print("Environment '{}' deleted".format(name))
+            print("Environment '{0}' deleted".format(name))
         else:
             print('')
             print('No such environment: {0}'.format(name))
@@ -109,23 +109,33 @@ def wait_for_server(ctx):
     return response
 
 
-def get_agent_registration_data(ctx):
+def get_agent_registration_data(ctx, env):
     # see invoke.yml in project root
     hostname = ctx.rancher.server.hostname
     domain_name = ctx.rancher.server.domain_name
     api = ctx.rancher.server.api
 
-    server = '{0}.{1}'.format(hostname, domain_name)
-    url = 'https://{0}/{1}/projects'.format(server, api)
-    # url = 'http://{0}:8080/{1}/projects'.format(server, api)
+    environments_url = resource_url(ctx, 'projects')
+    response = requests.get(environments_url, verify=False)
+    response.raise_for_status()
 
-    response = requests.get(url, verify=False)
-    if response.status_code != 200:
-        raise ApiError('GET /v1/projects/ {}'.format(response.status_code))
-    url = response.json()['data'][0]['links']['registrationTokens']
-    response = requests.post(url, verify=False)
-    response = requests.get(url, verify=False)
+    environments = response.json()['data']
+    environment_url = None
+    for e in environments:
+        if e['name'] == env:
+             environment_url = e['links']['self']
+    if environment_url is None:
+        return None, None
 
-    registration_url = response.json()['data'][0]['registrationUrl']
-    image = response.json()['data'][0]['image']
+    response = requests.get(environment_url, verify=False)
+    response.raise_for_status()
+
+    tokens_url = response.json()['links']['registrationTokens']
+    response = requests.post(tokens_url, verify=False)
+    response.raise_for_status()
+
+    token_data = requests.get(response.json()['links']['self'], verify=False)
+
+    registration_url = response.json()['registrationUrl']
+    image = response.json()['image']
     return registration_url, image
