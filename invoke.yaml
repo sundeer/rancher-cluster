@@ -4,8 +4,8 @@ terraform:
   state: terraform.tfstate
 rancher:
   server:
-    scheme: https
-    port: default
+    scheme: http
+    port: 8080
     hostname: b4kk83
     domain_name: corngoodness.com
     api: v1
