@@ -11,7 +11,7 @@ def destroy(ctx):
 
 
 def apply(ctx,
-    hosts=None, agent_registration_url=None, rancher_agent_image=None,
+    hosts=None, agent_registration_url=None, rancher_agent_image=None, env=None,
     servers=None,
     target=None
     ):
@@ -32,6 +32,10 @@ def apply(ctx,
 
     if rancher_agent_image is not None:
         option = '-var rancher_agent_image={0}'.format(rancher_agent_image)
+        opts_list.append(option)
+
+    if env is not None:
+        option = '-var rancher_environment={0}'.format(env)
         opts_list.append(option)
 
     if servers is not None:

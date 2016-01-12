@@ -59,7 +59,7 @@ def add_servers(ctx, number):
 
 @task(help={'number': "Number of Rancher hosts to add to cluster",
             'env'   : "Name of Rancher Environment host(s) will be added to"})
-def add_host(ctx, env='Default', token=False):
+def add_host(ctx, env='Default'):
     '''Add Rancher host to cluster'''
     current_servers = terraform.count_resource(ctx, 'aws_instance.server')
     if current_servers == 0:
@@ -85,12 +85,13 @@ def add_host(ctx, env='Default', token=False):
         hosts=hosts,
         agent_registration_url=url,
         rancher_agent_image=image,
+        env=env,
         target=target
     )
 
 
 @task
-def remove_host(ctx):
+def remove_host(ctx, env='Default'):
     current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
     if current_hosts == 0:
         print('')

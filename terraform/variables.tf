@@ -53,6 +53,11 @@ variable "rancher_agent_image" {
   default = ""
 }
 
+variable "rancher_environment" {
+  description = ""
+  default = ""
+}
+
 variable "public_subnet" {
   description = "CIDR for public subnet"
   default     = {

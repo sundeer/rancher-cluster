@@ -17,6 +17,7 @@ resource "aws_instance" "host" {
   user_data = "${template_file.host.rendered}"
   tags = {
     Name = "host-${count.index}"
+    environment = "${var.rancher_environment}"
   }
 }
 
