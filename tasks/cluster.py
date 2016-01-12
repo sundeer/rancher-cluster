@@ -65,7 +65,11 @@ def add_hosts(ctx, number, env='Default', token=False):
 
     rancher.wait_for_server(ctx)
 
-    url, image = rancher.get_agent_registration_data(ctx)
+    url, image = rancher.get_agent_registration_data(ctx, env)
+    if url is None:
+        print('')
+        print('No such environment: {0}'.format(env))
+        return 1
 
     terraform.apply(ctx, hosts=hosts, agent_registration_url=url, rancher_agent_image=image)
 
