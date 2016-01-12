@@ -89,15 +89,22 @@ def add_host(ctx, env='Default', token=False):
     )
 
 
-# Broke after adding host user_data template
-# @task
-# def remove_hosts(ctx, number):
-#     current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
-#     hosts_to_remove = int(number)
-#     hosts = current_hosts - hosts_to_remove
-#     if hosts < 0:
-#         hosts = 0
-#     terraform.apply(ctx, hosts=hosts)
+@task
+def remove_host(ctx):
+    current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
+    if current_hosts == 0:
+        print('')
+        print('There are no hosts to remove')
+
+    hosts = current_hosts - 1
+    if hosts == 0:
+        # This is a special case since terraform removes the host index when
+        # there is only a single instance
+        terraform.apply(ctx, hosts=0)
+    else:
+        # target only the last host added host (host count starts with 0)
+        target = 'aws_instance.host[{0}]'.format(current_hosts - 1)
+        terraform.apply(ctx, hosts=hosts, target=target)
 
 
 # @task
