@@ -27,7 +27,8 @@ def build(ctx, hosts=None, servers=None):
         add_servers(ctx, servers)
 
     if hosts is not None:
-        add_hosts(ctx, number=hosts)
+        for host in range(int(hosts)):
+            add_host(ctx)
 
 
 @task
@@ -58,18 +59,17 @@ def add_servers(ctx, number):
 
 @task(help={'number': "Number of Rancher hosts to add to cluster",
             'env'   : "Name of Rancher Environment host(s) will be added to"})
-def add_hosts(ctx, number, env='Default', token=False):
-    '''Add Rancher hosts to cluster'''
+def add_host(ctx, env='Default', token=False):
+    '''Add Rancher host to cluster'''
     current_servers = terraform.count_resource(ctx, 'aws_instance.server')
     if current_servers == 0:
         print('')
         print('No Rancher server found. Server must')
         print('be created prior to adding hosts')
         return 1
-        
+
     current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
-    hosts_to_add = int(number)
-    hosts = current_hosts + hosts_to_add
+    hosts = current_hosts + 1
 
     url, image = rancher.get_agent_registration_data(ctx, env)
     if url is None:
@@ -77,7 +77,16 @@ def add_hosts(ctx, number, env='Default', token=False):
         print('No such environment: {0}'.format(env))
         return 1
 
-    terraform.apply(ctx, hosts=hosts, agent_registration_url=url, rancher_agent_image=image)
+    # target only this host (host count starts with 0)
+    target = 'aws_instance.host[{0}]'.format(hosts - 1)
+
+    terraform.apply(
+        ctx,
+        hosts=hosts,
+        agent_registration_url=url,
+        rancher_agent_image=image,
+        target=target
+    )
 
 
 # Broke after adding host user_data template
