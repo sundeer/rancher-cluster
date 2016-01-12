@@ -66,7 +66,7 @@ def add_hosts(ctx, number, env='Default', token=False):
         print('No Rancher server found. Server must')
         print('be created prior to adding hosts')
         return 1
-        
+
     current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
     hosts_to_add = int(number)
     hosts = current_hosts + hosts_to_add
@@ -77,7 +77,15 @@ def add_hosts(ctx, number, env='Default', token=False):
         print('No such environment: {0}'.format(env))
         return 1
 
-    terraform.apply(ctx, hosts=hosts, agent_registration_url=url, rancher_agent_image=image)
+    target = 'aws_instance.host[{0}]'.format(hosts - 1)
+
+    terraform.apply(
+        ctx,
+        hosts=hosts,
+        agent_registration_url=url,
+        rancher_agent_image=image,
+        target=target
+    )
 
 
 # Broke after adding host user_data template
