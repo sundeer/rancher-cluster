@@ -16,7 +16,7 @@ def create_infra(ctx):
 def build(ctx, hosts=None, servers=None):
     '''Build cluster infrastructure and optionally add servers/hosts'''
 
-    resource_count = terraform.count_current_resource(ctx, res_type='any')
+    resource_count = terraform.count_resource(ctx, res_type='any')
     if resource_count is not 0:
         print('')
         print('Cluster already created!')
@@ -40,7 +40,7 @@ def destroy(ctx):
 @task(help={'number': "Number of Rancher servers to add to cluster"})
 def add_servers(ctx, number):
     '''Add Rancher servers to cluster'''
-    current_servers = terraform.count_resource(ctx, 'aws_instance.server')
+    current_servers = terraform.count_resource(ctx, 'server')
     servers_to_add = int(number)
     servers = current_servers + servers_to_add
     terraform.apply(ctx, servers=servers)
@@ -61,14 +61,14 @@ def add_servers(ctx, number):
             'env'   : "Name of Rancher Environment host(s) will be added to"})
 def add_host(ctx, env='Default'):
     '''Add Rancher host to cluster'''
-    current_servers = terraform.count_resource(ctx, 'aws_instance.server')
+    current_servers = terraform.count_resource(ctx, 'server')
     if current_servers == 0:
         print('')
         print('No Rancher server found. Server must')
         print('be created prior to adding hosts')
         return 1
 
-    current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
+    current_hosts = terraform.count_resource(ctx, 'host')
     hosts = current_hosts + 1
 
     url, image = rancher.get_agent_registration_data(ctx, env)
@@ -92,20 +92,31 @@ def add_host(ctx, env='Default'):
 
 @task
 def remove_host(ctx, env='Default'):
-    current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
-    if current_hosts == 0:
-        print('')
-        print('There are no hosts to remove')
+    '''Remove a single host from the selected Rancher environment'''
+    current_total_hosts = terraform.count_resource(ctx, 'host')
+    new_total_hosts = current_total_hosts - 1
+    hosts_in_env = terraform.get_hosts_by_environment(ctx, env)
+    number_of_hosts_in_env = len(hosts_in_env)
 
-    hosts = current_hosts - 1
-    if hosts == 0:
+    if number_of_hosts_in_env == 0:
+        print()
+        print('There are no hosts in environment: {0}'.format(env))
+        print()
+        return 1
+
+    if False: #new_total_hosts == 0:
         # This is a special case since terraform removes the host index when
-        # there is only a single instance
-        terraform.apply(ctx, hosts=0)
+        # there is only a single host instance
+        target = ['aws_instance.host']
+        terraform.destroy(ctx, target)
     else:
-        # target only the last host added host (host count starts with 0)
-        target = 'aws_instance.host[{0}]'.format(current_hosts - 1)
-        terraform.apply(ctx, hosts=hosts, target=target)
+        # Grab the name of the last host in the list
+        target_host = hosts_in_env.pop()
+        # The part after the . is the host index
+        target_host_index = target_host.rsplit('.', 1)[-1]
+        # Target only that host
+        target = ['aws_instance.host[{0}]'.format(target_host_index)]
+        terraform.destroy(ctx, target)
 
 
 # @task
@@ -137,9 +148,9 @@ def remove_host(ctx, env='Default'):
 @task
 def list(ctx):
     '''Lists all server, host, and other active cluster resources'''
-    servers = terraform.count_current_resource(ctx, res_type='server')
-    hosts = terraform.count_current_resource(ctx, res_type='host')
-    resources = terraform.count_current_resource(ctx, res_type='any')
+    servers = terraform.count_resource(ctx, res_type='server')
+    hosts = terraform.count_resource(ctx, res_type='host')
+    resources = terraform.count_resource(ctx, res_type='any')
 
     print('')
     print('Current Resources')

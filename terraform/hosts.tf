@@ -29,3 +29,7 @@ resource "template_file" "host" {
     agent_registration_url = "${var.agent_registration_url}"
   }
 }
+
+output "hosts" {
+  value = "${join(",", aws_instance.host.*.tags.Name)}"
+}

@@ -40,7 +40,7 @@ variable "server_domain_name" {
 
 variable "host_count" {
   description = "Number or Rancher hosts to create"
-  default = 0
+  default = 2
 }
 
 variable "agent_registration_url" {
