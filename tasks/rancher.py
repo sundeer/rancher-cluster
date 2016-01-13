@@ -1,5 +1,4 @@
 from invoke import ctask as task
-import gdapi
 from tasks import utils
 import time
 import requests
@@ -28,6 +27,11 @@ def env(ctx,
         print(*env_names, sep='\n')
         print('')
     elif create:
+        if name is None:
+            print()
+            print('Must specify environment name with -n or -name')
+            print()
+            return 1
         data = {"name": name,
                 "description": description}
         response = requests.post(environments_url, data, verify=False)

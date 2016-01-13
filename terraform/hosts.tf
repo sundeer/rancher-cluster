@@ -17,6 +17,7 @@ resource "aws_instance" "host" {
   user_data = "${template_file.host.rendered}"
   tags = {
     Name = "host-${count.index}"
+    environment = "${var.rancher_environment}"
   }
 }
 
@@ -27,4 +28,8 @@ resource "template_file" "host" {
     rancher_agent_image = "${var.rancher_agent_image}"
     agent_registration_url = "${var.agent_registration_url}"
   }
+}
+
+output "hosts" {
+  value = "${join(",", aws_instance.host.*.tags.Name)}"
 }
