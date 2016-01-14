@@ -19,7 +19,7 @@ resource "aws_instance" "server" {
 }
 
 resource "template_file" "server" {
-  template = "${file("./terraform/templates/server_user_data.tftmpl")}"
+  template = "${file("${path.module}/templates/server_user_data.tftmpl")}"
 
   vars {
     hostname = "${var.server_hostname}"
