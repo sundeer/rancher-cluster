@@ -3,12 +3,11 @@ resource "aws_instance" "host" {
   /*depends_on = ["aws_instance.server"]*/
   count = "${var.host_count}"
   ami = "${lookup(var.rancheros-amis, var.aws_region)}"
-  instance_type = "t2.micro"
+  instance_type = "${var.aws_instance_type}"
   subnet_id = "${aws_subnet.public.id}"
   vpc_security_group_ids = [
     "${aws_security_group.default.id}",
     "${aws_security_group.web.id}",
-    "${aws_security_group.vpn.id}",
     "${aws_security_group.ssh.id}",
     "${aws_security_group.rancher.id}"
   ]

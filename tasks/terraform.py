@@ -20,6 +20,7 @@ def destroy(ctx, targets=None):
 def apply(ctx,
     hosts=None, agent_registration_url=None, rancher_agent_image=None, env=None,
     servers=None,
+    instance_type=None,
     target=None
     ):
 
@@ -51,6 +52,10 @@ def apply(ctx,
     else:
         current_servers = count_resource(ctx, 'server')
         option = '-var server_count={0}'.format(current_servers)
+        opts_list.append(option)
+
+    if instance_type is not None:
+        option = '-var aws_instance_type={0}'.format(instance_type)
         opts_list.append(option)
 
     if target is not None:

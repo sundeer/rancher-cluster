@@ -11,9 +11,10 @@ def create_infra(ctx):
     terraform.apply(ctx)
 
 
-@task(help={'servers': "Number of Rancher servers to create",
-            'hosts'  : "Number of Rancher hosts to create"})
-def build(ctx, hosts=None, servers=None):
+@task(help={'servers'      : "Number of Rancher servers to create",
+            'hosts'        : "Number of Rancher hosts to create",
+            'instance_type': "AWS EC2 instance type"})
+def build(ctx, hosts=None, servers=None, instance_type=None):
     '''Build cluster infrastructure and optionally add servers/hosts'''
 
     resource_count = terraform.count_resource(ctx, res_type='any')
@@ -24,11 +25,11 @@ def build(ctx, hosts=None, servers=None):
         return 1
 
     if servers is not None:
-        add_servers(ctx, servers)
+        add_servers(ctx, servers, instance_type=instance_type)
 
     if hosts is not None:
         for host in range(int(hosts)):
-            add_host(ctx)
+            add_host(ctx, instance_type=instance_type)
 
 
 @task
@@ -37,13 +38,14 @@ def destroy(ctx):
     terraform.destroy(ctx)
 
 
-@task(help={'number': "Number of Rancher servers to add to cluster"})
-def add_servers(ctx, number):
+@task(help={'number': "Number of Rancher servers to add to cluster",
+            'instance_type': "AWS EC2 instance type, default=t2.micro"})
+def add_servers(ctx, number, instance_type=None):
     '''Add Rancher servers to cluster'''
     current_servers = terraform.count_resource(ctx, 'server')
     servers_to_add = int(number)
     servers = current_servers + servers_to_add
-    terraform.apply(ctx, servers=servers)
+    terraform.apply(ctx, servers=servers, instance_type=instance_type)
     rancher.wait_for_server(ctx)
 
 
@@ -58,8 +60,9 @@ def add_servers(ctx, number):
 
 
 @task(help={'number': "Number of Rancher hosts to add to cluster",
+            'instance_type': "AWS EC2 instance type",
             'env'   : "Name of Rancher Environment host(s) will be added to"})
-def add_host(ctx, env='Default'):
+def add_host(ctx, env='Default', instance_type=None):
     '''Add Rancher host to cluster'''
     current_servers = terraform.count_resource(ctx, 'server')
     if current_servers == 0:
@@ -83,6 +86,7 @@ def add_host(ctx, env='Default'):
     terraform.apply(
         ctx,
         hosts=hosts,
+        instance_type=instance_type,
         agent_registration_url=url,
         rancher_agent_image=image,
         env=env,

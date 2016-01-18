@@ -20,6 +20,11 @@ variable "vpc_cidr" {
   default     = "10.99.0.0/16"
 }
 
+variable "aws_instance_type" {
+  description = "Size of aws instance for both the server and hosts"
+  default = "t2.micro"
+}
+
 variable "server_count" {
   description = "Number or Rancher servers to create"
   default = 0
