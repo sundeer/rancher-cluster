@@ -2,7 +2,7 @@
 resource "aws_security_group" "default" {
   name = "rancher-vpc-default"
   description = "Default security group that allows inbound and outbound traffic from all instances in the VPC"
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port   = "0"
@@ -28,7 +28,7 @@ resource "aws_security_group" "default" {
 resource "aws_security_group" "ssh" {
   name = "ssh"
   description = "Security group for instances that allows SSH traffic from internet"
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port = 22
@@ -53,7 +53,7 @@ resource "aws_security_group" "ssh" {
 resource "aws_security_group" "web" {
   name = "web"
   description = "Security group for web that allows web traffic from internet"
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port = 80
@@ -92,7 +92,7 @@ resource "aws_security_group" "web" {
 resource "aws_security_group" "vpn" {
   name = "vpn"
   description = "Security group for instances that allows vpn traffic from internet"
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port = 1194
@@ -124,7 +124,7 @@ resource "aws_security_group" "vpn" {
 resource "aws_security_group" "rancher" {
   name = "rancher"
   description = "Security group for instances that allows vpn traffic from internet"
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port = 500
@@ -138,14 +138,6 @@ resource "aws_security_group" "rancher" {
     to_port   = 4500
     protocol  = "udp"
     self      = true
-  }
-
-  ingress {
-    from_port = 2376
-    to_port   = 2376
-    protocol  = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    /*self      = true*/
   }
 
   egress {
@@ -164,7 +156,7 @@ resource "aws_security_group" "rancher" {
 resource "aws_security_group" "all" {
   name = "rancher-all"
   description = "Wide open for testing"
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port   = "0"
