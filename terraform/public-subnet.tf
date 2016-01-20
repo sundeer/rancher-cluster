@@ -1,6 +1,6 @@
 /* Public subnet */
 resource "aws_subnet" "public" {
-  vpc_id            = "${aws_vpc.default.id}"
+  vpc_id            = "${aws_vpc.rancher.id}"
   cidr_block        = "${lookup(var.public_subnet, "cidr")}"
   /*availability_zone = "${lookup(var.public_subnet, "az")}"*/
   map_public_ip_on_launch = true
@@ -11,12 +11,12 @@ resource "aws_subnet" "public" {
 
 /* Internet gateway for the public subnet */
 resource "aws_internet_gateway" "default" {
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
 }
 
 /* Routing table for public subnet */
 resource "aws_route_table" "public" {
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = "${aws_internet_gateway.default.id}"
