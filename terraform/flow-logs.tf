@@ -1,5 +1,6 @@
 resource "aws_cloudwatch_log_group" "rancher" {
   name = "Rancher"
+  retention_in_days = "30"
 }
 
 resource "aws_flow_log" "rancher_vpc" {
