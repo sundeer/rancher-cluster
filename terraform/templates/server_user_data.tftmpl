@@ -7,8 +7,6 @@ rancher:
       name: rancher-server
       ports:
         - 8080:8080
-      labels:
-        - io.rancher.os.scope=system
 
     letsencrypt:
       image: ${letsencrypt_image}
@@ -20,8 +18,6 @@ rancher:
       volumes:
         - /etc/letsencrypt:/etc/letsencrypt
         - /var/lib/letsencrypt:/var/lib/letsencrypt
-      labels:
-        - io.rancher.os.scope=system
 
     rancher-tls-proxy:
       image: sundeer/rancher-tls-proxy
@@ -36,5 +32,4 @@ rancher:
         - 443:443
         - 80:80
       labels:
-        - io.rancher.os.scope=system
         - io.rancher.os.after=letsencrypt
