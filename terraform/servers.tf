@@ -7,6 +7,7 @@ resource "aws_instance" "server" {
   vpc_security_group_ids = [
     "${aws_security_group.tcos.id}",
     "${aws_security_group.web.id}",
+    "${aws_security_group.ssh.id}",
     "${aws_security_group.rancher.id}"
   ]
   key_name = "${aws_key_pair.insecure.key_name}"
@@ -15,6 +16,11 @@ resource "aws_instance" "server" {
   tags = {
     Name = "server-${count.index}"
   }
+}
+
+resource "aws_eip" "server" {
+    instance = "${aws_instance.server.id}"
+    vpc = true
 }
 
 resource "template_file" "server" {

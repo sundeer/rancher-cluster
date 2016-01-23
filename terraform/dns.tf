@@ -4,7 +4,7 @@ resource "aws_route53_record" "rancher" {
   name = "${var.server_hostname}.${var.server_domain_name}"
   type = "A"
   ttl = "60"
-  records = ["${aws_instance.server.public_ip}"]
+  records = ["${aws_eip.server.public_ip}"]
 }
 
 /*resource "aws_route53_record" "dev-ns" {
