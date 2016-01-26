@@ -1,7 +1,7 @@
 /* The Cone of Silence security group */
 resource "aws_security_group" "tcos" {
   name = "tcos"
-  description = "Allow any inter-security group traffic"
+  description = "Allow any inter security group traffic"
   vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {

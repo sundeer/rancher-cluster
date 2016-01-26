@@ -1,5 +1,8 @@
 #cloud-config
 rancher:
+  services_include:
+    ubuntu-console: true
+    
   services:
     rancher-server:
       image: rancher/server
