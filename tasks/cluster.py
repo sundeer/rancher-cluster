@@ -108,7 +108,7 @@ def remove_host(ctx, env='Default'):
         print()
         return 1
 
-    if False: #new_total_hosts == 0:
+    if new_total_hosts == 0:
         # This is a special case since terraform removes the host index when
         # there is only a single host instance
         target = ['aws_instance.host']
