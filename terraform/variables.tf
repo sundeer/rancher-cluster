@@ -22,7 +22,7 @@ variable "vpc_cidr" {
 
 variable "aws_instance_type" {
   description = "Size of aws instance for both the server and hosts"
-  default = "t2.micro"
+  default = "t2.small"
 }
 
 variable "server_count" {
@@ -63,11 +63,35 @@ variable "rancher_environment" {
   default = ""
 }
 
-variable "public_subnet" {
+variable "public_subnet_a" {
   description = "CIDR for public subnet"
   default     = {
     cidr = "10.99.101.0/24"
-    /*az = "us-west-1a"*/
+    az = "us-east-1a"
+  }
+}
+
+variable "public_subnet_b" {
+  description = "CIDR for public subnet"
+  default     = {
+    cidr = "10.99.102.0/24"
+    az = "us-east-1b"
+  }
+}
+
+variable "public_subnet_d" {
+  description = "CIDR for public subnet"
+  default     = {
+    cidr = "10.99.104.0/24"
+    az = "us-east-1d"
+  }
+}
+
+variable "public_subnet_e" {
+  description = "CIDR for public subnet"
+  default     = {
+    cidr = "10.99.105.0/24"
+    az = "us-east-1e"
   }
 }
 

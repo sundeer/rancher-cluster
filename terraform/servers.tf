@@ -3,7 +3,7 @@ resource "aws_instance" "server" {
   count = "${var.server_count}"
   ami = "${lookup(var.rancheros-amis, var.aws_region)}"
   instance_type = "${var.aws_instance_type}"
-  subnet_id = "${aws_subnet.public.id}"
+  subnet_id = "${aws_subnet.public_e.id}"
   vpc_security_group_ids = [
     "${aws_security_group.tcos.id}",
     "${aws_security_group.web.id}",
