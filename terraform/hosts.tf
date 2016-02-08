@@ -4,7 +4,7 @@ resource "aws_instance" "host" {
   count = "${var.host_count}"
   ami = "${lookup(var.rancheros-amis, var.aws_region)}"
   instance_type = "${var.aws_instance_type}"
-  subnet_id = "${aws_subnet.public_e.id}"
+  subnet_id = "${element(aws_subnet.public.*.id, count.index)}"
   vpc_security_group_ids = [
     "${aws_security_group.tcos.id}",
     "${aws_security_group.web.id}",

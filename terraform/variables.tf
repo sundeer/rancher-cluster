@@ -17,7 +17,13 @@ variable "vpc_name" {
 
 variable "vpc_cidr" {
   description = "CIDR for VPC"
-  default     = "10.99.0.0/16"
+  default = {
+    octet_1 = "10"
+    octet_2 = "99"
+    octet_3 = "0"
+    octet_4 = "0"
+    mask    = "16"
+  }
 }
 
 variable "aws_instance_type" {
@@ -63,35 +69,44 @@ variable "rancher_environment" {
   default = ""
 }
 
-variable "public_subnet_a" {
-  description = "CIDR for public subnet"
-  default     = {
-    cidr = "10.99.101.0/24"
-    az = "us-east-1a"
+variable "region_az_count" {
+  default = {
+    "us-east-1" = 4
+    "eu-west-1" = 3
   }
 }
 
-variable "public_subnet_b" {
-  description = "CIDR for public subnet"
-  default     = {
-    cidr = "10.99.102.0/24"
-    az = "us-east-1b"
+variable "us_east_1_azs" {
+  default = {
+    "0" = "us-east-1a"
+    "1" = "us-east-1b"
+    "2" = "us-east-1d"
+    "3" = "us-east-1e"
   }
 }
 
-variable "public_subnet_d" {
-  description = "CIDR for public subnet"
-  default     = {
-    cidr = "10.99.104.0/24"
-    az = "us-east-1d"
+variable "eu_west_1_azs" {
+  default = {
+    "0" = "eu-west-1a"
+    "1" = "eu-west-1b"
+    "2" = "eu-west-1c"
   }
 }
 
-variable "public_subnet_e" {
-  description = "CIDR for public subnet"
-  default     = {
-    cidr = "10.99.105.0/24"
-    az = "us-east-1e"
+variable "subnet_name" {
+  default = {
+    "0" = "a"
+    "1" = "b"
+    "2" = "d"
+    "3" = "e"
+  }
+}
+
+variable "public_subnet" {
+  default = {
+    octet_3 = "101"
+    octet_4 = "0"
+    mask    = "24"
   }
 }
 
