@@ -111,10 +111,10 @@ variable "public_subnet" {
 }
 
 variable "private_subnet" {
-  description = "CIDR for private subnet"
-  default     = {
-    cidr = "10.99.1.0/24"
-    az = "us-east-1a"
+  default = {
+    octet_3 = "1"
+    octet_4 = "0"
+    mask    = "24"
   }
 }
 
