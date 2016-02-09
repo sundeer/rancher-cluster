@@ -7,7 +7,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
   depends_on = ["aws_internet_gateway.default"]
 
-  tags { name = "public_${lookup(var.subnet_name, count.index)}" }
+  tags { Name = "public_${lookup(var.subnet_name, count.index)}" }
 }
 
 /* Internet gateway for the public subnets */

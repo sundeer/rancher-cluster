@@ -7,12 +7,12 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
   depends_on = ["aws_internet_gateway.default"]
 
-  tags { name = "private_${lookup(var.subnet_name, count.index)}" }
+  tags { Name = "private_${lookup(var.subnet_name, count.index)}" }
 }
-
-/* Routing table for private subnets */
+/*
+# Routing table for private subnets
 resource "aws_route_table" "private" {
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
   route {
     cidr_block = "0.0.0.0/0"
     instance_id = "${aws_instance.nat.id}"
@@ -21,9 +21,9 @@ resource "aws_route_table" "private" {
   tags = { Name = "private" }
 }
 
-/* Associate the routing table to public subnets */
-resource "aws_route_table_association" "public" {
+# Associate the routing table to private subnets 
+resource "aws_route_table_association" "private" {
   count = "${lookup(var.region_az_count, var.aws_region)}"
   subnet_id = "${element(aws_subnet.private.*.id, count.index)}"
   route_table_id = "${aws_route_table.private.id}"
-}
+}*/
