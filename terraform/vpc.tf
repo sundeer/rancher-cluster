@@ -15,7 +15,3 @@ resource "aws_vpc" "rancher" {
     Name = "${var.vpc_name}"
   }
 }
-
-variable "temp" {
-  default = "10"
-}
