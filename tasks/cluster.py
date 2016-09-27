@@ -149,7 +149,7 @@ def remove_host(ctx, env='Default'):
 #     terraform.apply(ctx, hosts=current_hosts, servers=current_servers)
 
 
-@task
+@task(default=True)
 def list(ctx):
     '''Lists all server, host, and other active cluster resources'''
     servers = terraform.count_resource(ctx, res_type='server')
