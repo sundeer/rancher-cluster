@@ -1,8 +1,5 @@
 #cloud-config
 rancher:
-  services_include:
-    ubuntu-console: true
-
   services:
     rancher-agent-boot:
       image: ${rancher_agent_image}
@@ -11,3 +8,5 @@ rancher:
       privileged: true
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
+      labels:
+        - ephemeral = "false"

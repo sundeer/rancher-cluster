@@ -2,7 +2,7 @@
 resource "aws_subnet" "private" {
   vpc_id = "${aws_vpc.rancher.id}"
   count  = "${lookup(var.region_az_count, var.aws_region)}"
-  cidr_block = "${var.vpc_cidr.octet_1}.${var.vpc_cidr.octet_2}.${var.private_subnet.octet_3 + count.index}.${var.private_subnet.octet_4}/${var.private_subnet.mask}"
+  cidr_block = "${var.vpc_cidr["octet_1"]}.${var.vpc_cidr["octet_2"]}.${var.private_subnet["octet_3"] + count.index}.${var.private_subnet["octet_4"]}/${var.private_subnet["mask"]}"
   availability_zone = "${lookup(var.eu_west_1_azs, count.index)}"
   map_public_ip_on_launch = false
   depends_on = ["aws_internet_gateway.default"]
