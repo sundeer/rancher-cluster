@@ -8,7 +8,7 @@ variable "aws_secret_key" {
 
 variable "aws_region"     {
   description = "AWS region"
-  default     = "us-east-1"
+  default     = "eu-west-1"
 }
 
 variable "vpc_name" {
@@ -17,7 +17,18 @@ variable "vpc_name" {
 
 variable "vpc_cidr" {
   description = "CIDR for VPC"
-  default     = "10.99.0.0/16"
+  default = {
+    octet_1 = "10"
+    octet_2 = "99"
+    octet_3 = "0"
+    octet_4 = "0"
+    mask    = "16"
+  }
+}
+
+variable "aws_instance_type" {
+  description = "Size of aws instance for both the server and hosts"
+  default = "t2.small"
 }
 
 variable "server_count" {
@@ -40,7 +51,7 @@ variable "server_domain_name" {
 
 variable "host_count" {
   description = "Number or Rancher hosts to create"
-  default = 0
+  default = 2
 }
 
 variable "agent_registration_url" {
@@ -53,19 +64,57 @@ variable "rancher_agent_image" {
   default = ""
 }
 
+variable "rancher_environment" {
+  description = ""
+  default = ""
+}
+
+variable "region_az_count" {
+  default = {
+    "us-east-1" = 4
+    "eu-west-1" = 3
+  }
+}
+
+variable "us_east_1_azs" {
+  default = {
+    "0" = "us-east-1a"
+    "1" = "us-east-1b"
+    "2" = "us-east-1d"
+    "3" = "us-east-1e"
+  }
+}
+
+variable "eu_west_1_azs" {
+  default = {
+    "0" = "eu-west-1a"
+    "1" = "eu-west-1b"
+    "2" = "eu-west-1c"
+  }
+}
+
+variable "subnet_name" {
+  default = {
+    "0" = "a"
+    "1" = "b"
+    "2" = "d"
+    "3" = "e"
+  }
+}
+
 variable "public_subnet" {
-  description = "CIDR for public subnet"
-  default     = {
-    cidr = "10.99.101.0/24"
-    /*az = "us-west-1a"*/
+  default = {
+    octet_3 = "101"
+    octet_4 = "0"
+    mask    = "24"
   }
 }
 
 variable "private_subnet" {
-  description = "CIDR for private subnet"
-  default     = {
-    cidr = "10.99.1.0/24"
-    az = "us-east-1a"
+  default = {
+    octet_3 = "1"
+    octet_4 = "0"
+    mask    = "24"
   }
 }
 

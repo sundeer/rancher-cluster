@@ -11,12 +11,13 @@ def create_infra(ctx):
     terraform.apply(ctx)
 
 
-@task(help={'servers': "Number of Rancher servers to create",
-            'hosts'  : "Number of Rancher hosts to create"})
-def build(ctx, hosts=None, servers=None):
+@task(help={'servers'      : "Number of Rancher servers to create",
+            'hosts'        : "Number of Rancher hosts to create",
+            'instance_type': "AWS EC2 instance type"})
+def build(ctx, hosts=None, servers=None, instance_type=None):
     '''Build cluster infrastructure and optionally add servers/hosts'''
 
-    resource_count = terraform.count_current_resource(ctx, res_type='any')
+    resource_count = terraform.count_resource(ctx, res_type='any')
     if resource_count is not 0:
         print('')
         print('Cluster already created!')
@@ -24,10 +25,11 @@ def build(ctx, hosts=None, servers=None):
         return 1
 
     if servers is not None:
-        add_servers(ctx, servers)
+        add_servers(ctx, servers, instance_type=instance_type)
 
     if hosts is not None:
-        add_hosts(ctx, number=hosts)
+        for host in range(int(hosts)):
+            add_host(ctx, instance_type=instance_type)
 
 
 @task
@@ -36,13 +38,15 @@ def destroy(ctx):
     terraform.destroy(ctx)
 
 
-@task(help={'number': "Number of Rancher servers to add to cluster"})
-def add_servers(ctx, number):
+@task(help={'number': "Number of Rancher servers to add to cluster",
+            'instance_type': "AWS EC2 instance type, default=t2.micro"})
+def add_servers(ctx, number, instance_type=None):
     '''Add Rancher servers to cluster'''
-    current_servers = terraform.count_resource(ctx, 'aws_instance.server')
+    current_servers = terraform.count_resource(ctx, 'server')
     servers_to_add = int(number)
     servers = current_servers + servers_to_add
-    terraform.apply(ctx, servers=servers)
+    terraform.apply(ctx, servers=servers, instance_type=instance_type)
+    rancher.wait_for_server(ctx)
 
 
 # @task
@@ -56,32 +60,67 @@ def add_servers(ctx, number):
 
 
 @task(help={'number': "Number of Rancher hosts to add to cluster",
+            'instance_type': "AWS EC2 instance type",
             'env'   : "Name of Rancher Environment host(s) will be added to"})
-def add_hosts(ctx, number, env='Default', token=False):
-    '''Add Rancher hosts to cluster'''
-    current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
-    hosts_to_add = int(number)
-    hosts = current_hosts + hosts_to_add
+def add_host(ctx, env='Default', instance_type=None):
+    '''Add Rancher host to cluster'''
+    current_servers = terraform.count_resource(ctx, 'server')
+    if current_servers == 0:
+        print('')
+        print('No Rancher server found. Server must')
+        print('be created prior to adding hosts')
+        return 1
 
-    rancher.wait_for_server(ctx)
+    current_hosts = terraform.count_resource(ctx, 'host')
+    hosts = current_hosts + 1
 
-    url, image = rancher.get_agent_registration_data(ctx)
+    url, image = rancher.get_agent_registration_data(ctx, env)
+    if url is None:
+        print('')
+        print('No such environment: {0}'.format(env))
+        return 1
 
-    terraform.apply(ctx, hosts=hosts, agent_registration_url=url, rancher_agent_image=image)
+    # target only this host (host count starts with 0)
+    target = 'aws_instance.host[{0}]'.format(hosts - 1)
 
-# Broke after adding host user_data template
-# @task
-# def remove_hosts(ctx, number):
-#     current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
-#     hosts_to_remove = int(number)
-#     hosts = current_hosts - hosts_to_remove
-#     if hosts < 0:
-#         hosts = 0
-#     terraform.apply(ctx, hosts=hosts)
+    terraform.apply(
+        ctx,
+        hosts=hosts,
+        instance_type=instance_type,
+        agent_registration_url=url,
+        rancher_agent_image=image,
+        env=env,
+        target=target
+    )
 
 
-def plan(ctx):
-    terraform.apply(ctx, action)
+@task
+def remove_host(ctx, env='Default'):
+    '''Remove a single host from the selected Rancher environment'''
+    current_total_hosts = terraform.count_resource(ctx, 'host')
+    new_total_hosts = current_total_hosts - 1
+    hosts_in_env = terraform.get_hosts_by_environment(ctx, env)
+    number_of_hosts_in_env = len(hosts_in_env)
+
+    if number_of_hosts_in_env == 0:
+        print()
+        print('There are no hosts in environment: {0}'.format(env))
+        print()
+        return 1
+
+    if new_total_hosts == 0:
+        # This is a special case since terraform removes the host index when
+        # there is only a single host instance
+        target = ['aws_instance.host']
+        terraform.destroy(ctx, target)
+    else:
+        # Grab the name of the last host in the list
+        target_host = hosts_in_env.pop()
+        # The part after the . is the host index
+        target_host_index = target_host.rsplit('.', 1)[-1]
+        # Target only that host
+        target = ['aws_instance.host[{0}]'.format(target_host_index)]
+        terraform.destroy(ctx, target)
 
 
 # @task
@@ -110,12 +149,12 @@ def plan(ctx):
 #     terraform.apply(ctx, hosts=current_hosts, servers=current_servers)
 
 
-@task
+@task(default=True)
 def list(ctx):
     '''Lists all server, host, and other active cluster resources'''
-    servers = terraform.count_current_resource(ctx, res_type='server')
-    hosts = terraform.count_current_resource(ctx, res_type='host')
-    resources = terraform.count_current_resource(ctx, res_type='any')
+    servers = terraform.count_resource(ctx, res_type='server')
+    hosts = terraform.count_resource(ctx, res_type='host')
+    resources = terraform.count_resource(ctx, res_type='any')
 
     print('')
     print('Current Resources')

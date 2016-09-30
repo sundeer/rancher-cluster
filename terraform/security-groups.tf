@@ -1,8 +1,8 @@
-/* Default security group */
-resource "aws_security_group" "default" {
-  name = "rancher-vpc-default"
-  description = "Default security group that allows inbound and outbound traffic from all instances in the VPC"
-  vpc_id = "${aws_vpc.default.id}"
+/* The Cone of Silence security group */
+resource "aws_security_group" "tcos" {
+  name = "tcos"
+  description = "Allow any inter security group traffic"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port   = "0"
@@ -19,7 +19,7 @@ resource "aws_security_group" "default" {
   }
 
   tags {
-    Name = "Default"
+    Name = "tcos"
   }
 }
 
@@ -27,8 +27,8 @@ resource "aws_security_group" "default" {
 /* Security group for ssh */
 resource "aws_security_group" "ssh" {
   name = "ssh"
-  description = "Security group for instances that allows SSH traffic from internet"
-  vpc_id = "${aws_vpc.default.id}"
+  description = "Security group for instances that allow SSH traffic from internet"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port = 22
@@ -53,7 +53,7 @@ resource "aws_security_group" "ssh" {
 resource "aws_security_group" "web" {
   name = "web"
   description = "Security group for web that allows web traffic from internet"
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port = 80
@@ -63,15 +63,15 @@ resource "aws_security_group" "web" {
   }
 
   ingress {
-    from_port = 8080
-    to_port   = 8080
+    from_port = 443
+    to_port   = 443
     protocol  = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port = 443
-    to_port   = 443
+    from_port = 8080
+    to_port   = 8080
     protocol  = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -92,7 +92,7 @@ resource "aws_security_group" "web" {
 resource "aws_security_group" "vpn" {
   name = "vpn"
   description = "Security group for instances that allows vpn traffic from internet"
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port = 1194
@@ -123,29 +123,28 @@ resource "aws_security_group" "vpn" {
 /* Security group for rancher */
 resource "aws_security_group" "rancher" {
   name = "rancher"
-  description = "Security group for instances that allows vpn traffic from internet"
-  vpc_id = "${aws_vpc.default.id}"
+  description = "Rancher only"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port = 500
     to_port   = 500
     protocol  = "udp"
-    self      = true
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     from_port = 4500
     to_port   = 4500
     protocol  = "udp"
-    self      = true
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port = 2376
-    to_port   = 2376
+    from_port = 8080
+    to_port   = 8080
     protocol  = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    /*self      = true*/
   }
 
   egress {
@@ -164,7 +163,7 @@ resource "aws_security_group" "rancher" {
 resource "aws_security_group" "all" {
   name = "rancher-all"
   description = "Wide open for testing"
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.rancher.id}"
 
   ingress {
     from_port   = "0"

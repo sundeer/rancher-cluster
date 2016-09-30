@@ -6,9 +6,8 @@ provider "aws" {
 }
 
 /* Define vpc */
-resource "aws_vpc" "default" {
-  cidr_block = "${var.vpc_cidr}"
-
+resource "aws_vpc" "rancher" {
+  cidr_block = "${var.vpc_cidr["octet_1"]}.${var.vpc_cidr["octet_2"]}.${var.vpc_cidr["octet_3"]}.${var.vpc_cidr["octet_4"]}/${var.vpc_cidr["mask"]}"
   enable_dns_support = true
   enable_dns_hostnames = true
 

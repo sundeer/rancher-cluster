@@ -5,8 +5,15 @@ terraform:
 
 rancher:
   server:
-    scheme: https
-    port: default
+    aws_instance_type: t2.small
+    scheme: http
+    port: 8080
     hostname: b4kk83
     domain_name: corngoodness.com
     api: v1
+  hosts:
+    aws_instance_type: t2.small
+  environments:
+    - test
+    - stage
+    - production

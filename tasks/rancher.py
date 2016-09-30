@@ -1,5 +1,4 @@
 from invoke import ctask as task
-import gdapi
 from tasks import utils
 import time
 import requests
@@ -7,11 +6,11 @@ import json
 
 @task
 def env(ctx,
-    list=True,
+    list=False,
     create=False,
     delete=False,
     name=None,
-    description=""):
+    description=None):
     '''Create and interact with environments/projects'''
 
     environments_url = resource_url(ctx, 'projects')
@@ -28,6 +27,11 @@ def env(ctx,
         print(*env_names, sep='\n')
         print('')
     elif create:
+        if name is None:
+            print()
+            print('Must specify environment name with -n or -name')
+            print()
+            return 1
         data = {"name": name,
                 "description": description}
         response = requests.post(environments_url, data, verify=False)
@@ -49,7 +53,7 @@ def env(ctx,
             response = requests.delete(environment_url, verify=False)
             response.raise_for_status()
             print('')
-            print("Environment '{}' deleted".format(name))
+            print("Environment '{0}' deleted".format(name))
         else:
             print('')
             print('No such environment: {0}'.format(name))
@@ -60,13 +64,7 @@ def resource(ctx, list=False):
 
 
 def resource_url(ctx, resource_name='all'):
-    # see invoke.yml in project root
-    hostname = ctx.rancher.server.hostname
-    domain_name = ctx.rancher.server.domain_name
-    api = ctx.rancher.server.api
-
-    server = '{0}.{1}'.format(hostname, domain_name)
-    url = 'https://{0}/{1}'.format(server, api)
+    url = get_root_api_url(ctx)
 
     response = wait_for_server(ctx)
 
@@ -83,15 +81,10 @@ def resource_url(ctx, resource_name='all'):
 
 
 def wait_for_server(ctx):
-    # see invoke.yml in project root
-    hostname = ctx.rancher.server.hostname
-    domain_name = ctx.rancher.server.domain_name
-    api = ctx.rancher.server.api
+    url = get_root_api_url(ctx)
 
-    server = '{0}.{1}'.format(hostname, domain_name)
-    url = 'https://{0}/{1}'.format(server, api)
-
-    print('Waiting for Rancher server to respond.')
+    print('Rancher server: {0}'.format(url))
+    print('Waiting for server to respond.')
     print('This may take a few minutes')
 
     responding = False
@@ -109,23 +102,47 @@ def wait_for_server(ctx):
     return response
 
 
-def get_agent_registration_data(ctx):
-    # see invoke.yml in project root
-    hostname = ctx.rancher.server.hostname
+def get_agent_registration_data(ctx, env):
+    environments_url = resource_url(ctx, 'projects')
+    response = requests.get(environments_url, verify=False)
+    response.raise_for_status()
+
+    environments = response.json()['data']
+    environment_url = None
+    for e in environments:
+        if e['name'] == env:
+             environment_url = e['links']['self']
+    if environment_url is None:
+        return None, None
+    else:
+        response = requests.get(environment_url, verify=False)
+        response.raise_for_status()
+
+        tokens_url = response.json()['links']['registrationTokens']
+        response = requests.post(tokens_url, verify=False)
+        response.raise_for_status()
+        token_url = response.json()['links']['self']
+
+        response = requests.get(token_url, verify=False)
+        token_data_state = response.json()['state']
+        while token_data_state != 'active':
+            response = requests.get(token_url, verify=False)
+            token_data_state = response.json()['state']
+            time.sleep(1)
+
+        registration_url = response.json()['registrationUrl']
+        image = response.json()['image']
+        return registration_url, image
+
+
+def get_root_api_url(ctx):
+    scheme      = ctx.rancher.server.scheme
+    port        = ctx.rancher.server.port
+    hostname    = ctx.rancher.server.hostname
     domain_name = ctx.rancher.server.domain_name
-    api = ctx.rancher.server.api
+    api         = ctx.rancher.server.api
 
     server = '{0}.{1}'.format(hostname, domain_name)
-    url = 'https://{0}/{1}/projects'.format(server, api)
-    # url = 'http://{0}:8080/{1}/projects'.format(server, api)
+    url = '{0}://{1}:{2}/{3}'.format(scheme, server, port, api)
 
-    response = requests.get(url, verify=False)
-    if response.status_code != 200:
-        raise ApiError('GET /v1/projects/ {}'.format(response.status_code))
-    url = response.json()['data'][0]['links']['registrationTokens']
-    response = requests.post(url, verify=False)
-    response = requests.get(url, verify=False)
-
-    registration_url = response.json()['data'][0]['registrationUrl']
-    image = response.json()['data'][0]['image']
-    return registration_url, image
+    return url

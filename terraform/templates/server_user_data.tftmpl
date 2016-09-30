@@ -2,14 +2,14 @@
 rancher:
   services:
     rancher-server:
-      image: rancher/server
+      image: rancher/server:latest
       restart: always
       name: rancher-server
       ports:
         - 8080:8080
 
     letsencrypt:
-      image: ${letsencrypt_image} 
+      image: ${letsencrypt_image}
       command: auth -m ${hostname}@${domain_name} -d ${hostname}.${domain_name} --agree-tos --test-cert
       ports:
         - 80:80
@@ -31,3 +31,5 @@ rancher:
       ports:
         - 443:443
         - 80:80
+      labels:
+        - io.rancher.os.after=letsencrypt
