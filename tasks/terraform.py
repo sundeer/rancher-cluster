@@ -27,39 +27,39 @@ def apply(ctx,
     opts_list = []
 
     if hosts is not None:
-        option = '-var host_count={0}'.format(hosts)
+        option = '-var \'host_count="{0}"\''.format(hosts)
         opts_list.append(option)
     else:
         current_hosts = count_resource(ctx, 'host')
-        option = '-var host_count={0}'.format(current_hosts)
+        option = '-var \'host_count="{0}"\''.format(current_hosts)
         opts_list.append(option)
 
     if agent_registration_url is not None:
-        option = '-var agent_registration_url={0}'.format(agent_registration_url)
+        option = '-var \'agent_registration_url="{0}"\''.format(agent_registration_url)
         opts_list.append(option)
 
     if rancher_agent_image is not None:
-        option = '-var rancher_agent_image={0}'.format(rancher_agent_image)
+        option = '-var \'rancher_agent_image="{0}"\''.format(rancher_agent_image)
         opts_list.append(option)
 
     if env is not None:
-        option = '-var rancher_environment={0}'.format(env)
+        option = '-var \'rancher_environment="{0}"\''.format(env)
         opts_list.append(option)
 
     if servers is not None:
-        option = '-var server_count={0}'.format(servers)
+        option = '-var \'server_count="{0}"\''.format(servers)
         opts_list.append(option)
     else:
         current_servers = count_resource(ctx, 'server')
-        option = '-var server_count={0}'.format(current_servers)
+        option = '-var \'server_count="{0}"\''.format(current_servers)
         opts_list.append(option)
 
     if instance_type is not None:
-        option = '-var aws_instance_type={0}'.format(instance_type)
+        option = '-var \'aws_instance_type="{0}"\''.format(instance_type)
         opts_list.append(option)
 
     if target is not None:
-        option = '-target={0}'.format(target)
+        option = '-target="{0}"'.format(target)
         opts_list.append(option)
 
     run_terraform(ctx, 'apply', opts_list)
