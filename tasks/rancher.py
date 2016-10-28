@@ -6,11 +6,12 @@ import json
 
 @task
 def env(ctx,
-    list=False,
-    create=False,
-    delete=False,
-    name=None,
-    description=None):
+        list=False,
+        create=False,
+        delete=False,
+        name=None,
+        description=None,
+        type='cattle'):
     '''Create and interact with environments/projects'''
 
     environments_url = resource_url(ctx, 'projects')
@@ -27,13 +28,25 @@ def env(ctx,
         print(*env_names, sep='\n')
         print('')
     elif create:
+        types = {'swarm', 'kubernetes', 'mesos', 'cattle'}
+
         if name is None:
             print()
             print('Must specify environment name with -n or -name')
             print()
             return 1
+        elif type not in types:
+            print()
+            print('Option "-t/--type" must be one of {0}'.format(types))
+            print()
+            return 1
+
         data = {"name": name,
-                "description": description}
+                "description": description,
+                "swarm": type == 'swarm',
+                "kubernetes": type == 'kubernetes',
+                "mesos": type == 'mesos'
+                }
         response = requests.post(environments_url, data, verify=False)
         response.raise_for_status()
 
