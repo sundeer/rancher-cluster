@@ -1,8 +1,7 @@
 from invoke import ctask as task
-from tasks import utils
 import time
 import requests
-import json
+import gdapi
 
 
 @task
@@ -15,16 +14,14 @@ def env(ctx,
         type='cattle'):
     '''Create and interact with environments/projects'''
 
-    session = create_rancher_http_session(ctx)
-
-    environments_url = resource_url(ctx, session, 'projects')
+    rancher = gdapi.Client(url=get_root_api_url(ctx),
+                           access_key=ctx.rancher.access_key,
+                           secret_key=ctx.rancher.secret_key)
 
     if list:
-        response = session.get(environments_url)
-        response.raise_for_status()
+        environments = rancher.list_project().data
+        env_names = [environment.name for environment in environments]
 
-        environments = response.json()['data']
-        env_names = [ environment['name'] for environment in environments ]
         print('')
         print('Rancher Environments')
         print('--------------------')
@@ -40,39 +37,35 @@ def env(ctx,
             return 1
         elif type not in types:
             print()
-            print('Option "-t/--type" must be one of {0}'.format(types))
+            print('Option "-t/--type_of_env" must be one of {0}'.format(types))
             print()
             return 1
 
-        data = {"name": name,
-                "description": description,
-                "swarm": type == 'swarm',
-                "kubernetes": type == 'kubernetes',
-                "mesos": type == 'mesos'
-                }
-        response = session.post(environments_url, data)
-        response.raise_for_status()
+        environment = {
+            "name": name,
+            "description": description,
+            "swarm": type == 'swarm',
+            "kubernetes": type == 'kubernetes',
+            "mesos": type == 'mesos'
+        }
+        rancher.create_project(**environment)
 
         print('')
         print("Environment '{}' created".format(name))
-        # environments(ctx, list=True)
     elif delete:
-        response = session.get(environments_url)
-        response.raise_for_status()
+        environments = rancher.list_project().data
 
-        environments = response.json()['data']
-        environment_url = None
-        for e in environments:
-            if e['name'] == name:
-                environment_url = e['links']['self']
-        if environment_url is not None:
-            response = session.delete(environment_url)
-            response.raise_for_status()
-            print('')
-            print("Environment '{0}' deleted".format(name))
-        else:
-            print('')
-            print('No such environment: {0}'.format(name))
+        for environment in environments:
+            if environment.name is name:
+                environment = rancher.by_id_project(environment.id)
+                rancher.delete(environment)
+
+                print('')
+                print("Environment '{0}' deleted".format(name))
+                return
+
+        print('')
+        print('No such environment: {0}'.format(name))
 
 
 def resource(ctx, list=False):
@@ -100,6 +93,7 @@ def wait_for_server(ctx, session):
     print('Rancher server: {0}'.format(url))
     print('Waiting for server to respond.')
     print('This may take a few minutes')
+    print('')
 
     responding = False
     while not responding:
