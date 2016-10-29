@@ -10,7 +10,7 @@ rancher:
   secret_key: overridesomesecretkey
   server:
     aws_instance_type: t2.micro
-    scheme: https
+    scheme: http
     port: 8080
     hostname: b4kk83
     domain_name: corngoodness.com
