@@ -1,8 +1,5 @@
 from invoke import ctask as task
-from invoke import run, exceptions
 from tasks import rancher, terraform
-import os
-
 
 
 @task
@@ -46,7 +43,9 @@ def add_servers(ctx, number, instance_type=None):
     servers_to_add = int(number)
     servers = current_servers + servers_to_add
     terraform.apply(ctx, servers=servers, instance_type=instance_type)
-    rancher.wait_for_server(ctx)
+
+    session = rancher.create_rancher_http_session(ctx)
+    rancher.wait_for_server(ctx, session)
 
 
 # @task
@@ -121,32 +120,6 @@ def remove_host(ctx, env='Default'):
         # Target only that host
         target = ['aws_instance.host[{0}]'.format(target_host_index)]
         terraform.destroy(ctx, target)
-
-
-# @task
-# def recreate(ctx, hosts=None, servers=None):
-#     if hosts is None:
-#         current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
-#         hosts = current_hosts
-#
-#     if servers is None:
-#         current_servers = terraform.count_resource(ctx, 'aws_instance.server')
-#         servers = current_servers
-#
-#     destroy(ctx)
-#     create(ctx, hosts=hosts, servers=servers)
-
-
-# @task
-# def refresh(ctx):
-#     current_servers = terraform.count_resource(ctx, 'aws_instance.server')
-#     current_hosts = terraform.count_resource(ctx, 'aws_instance.host')
-#
-#     rancher.wait_for_server(ctx)
-#     url, image = rancher.get_agent_registration_data(ctx)
-#     _create_hosts_cloud_config_user_data(ctx, url)
-#
-#     terraform.apply(ctx, hosts=current_hosts, servers=current_servers)
 
 
 @task(default=True)
