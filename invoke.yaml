@@ -4,9 +4,13 @@ terraform:
   state: terraform.tfstate
 
 rancher:
+  # export INVOKE_RANCHER_ACCESS_KEY=overridesomeaccesskey
+  # export INVOKE_RANCHER_SECRET=overridesomesecretkey
+  access_key: overridesomeaccesskey
+  secret_key: overridesomesecretkey
   server:
-    aws_instance_type: t2.small
-    scheme: http
+    aws_instance_type: t2.micro
+    scheme: https
     port: 8080
     hostname: b4kk83
     domain_name: corngoodness.com
