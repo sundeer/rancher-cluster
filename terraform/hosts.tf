@@ -12,14 +12,14 @@ resource "aws_instance" "host" {
   ]
   key_name = "${aws_key_pair.insecure.key_name}"
   source_dest_check = false
-  user_data = "${template_file.host.rendered}"
+  user_data = "${data.template_file.host.rendered}"
   tags = {
     Name = "host-${count.index}"
     environment = "${var.rancher_environment}"
   }
 }
 
-resource "template_file" "host" {
+data "template_file" "host" {
   template = "${file("${path.module}/templates/host_user_data.tftmpl")}"
 
   vars {

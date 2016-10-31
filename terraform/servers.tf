@@ -12,7 +12,7 @@ resource "aws_instance" "server" {
   ]
   key_name = "${aws_key_pair.insecure.key_name}"
   source_dest_check = false
-  user_data = "${template_file.server.rendered}"
+  user_data = "${data.template_file.server.rendered}"
   tags = {
     Name = "server-${count.index}"
   }
@@ -23,7 +23,7 @@ resource "aws_eip" "server" {
     vpc = true
 }
 
-resource "template_file" "server" {
+data "template_file" "server" {
   template = "${file("${path.module}/templates/server_user_data.tftmpl")}"
 
   vars {
